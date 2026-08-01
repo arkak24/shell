@@ -1,0 +1,14 @@
+#pragma once
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <filesystem>
+#include <cstdlib>
+#include <unistd.h>
+
+class Builtins{
+      public:
+            void type(std::string& argument);
+            void echo(std::string& argument);
+};
