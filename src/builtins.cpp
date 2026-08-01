@@ -1,7 +1,6 @@
 #include "../include/builtins.hpp"
 
-void Builtins::type(std::string& argument){
-
+void Builtins::type(const std::string& argument){
       if(argument == "echo" || argument == "exit" || argument == "type"){
             std::cout << argument << " is a shell builtin\n";
             return;
@@ -31,7 +30,8 @@ void Builtins::type(std::string& argument){
       return;
 }
 
-void Builtins::echo(std::string& argument){
+void Builtins::echo(const std::string& argument){
+      // wrong, more modifications needed
       std::cout << argument << std::endl;
       return;
 }

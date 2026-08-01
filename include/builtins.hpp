@@ -9,6 +9,6 @@
 
 class Builtins{
       public:
-            void type(std::string& argument);
-            void echo(std::string& argument);
+            void type(const std::string& argument);
+            void echo(const std::string& argument);
 };
