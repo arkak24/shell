@@ -19,11 +19,17 @@ std::vector<char*> convert_to_cType(const std::vector<std::string>& cmd_line_arg
 void Executor::execute(const std::vector<std::string>& cmd_line_args){
       Builtins builtins;
       if(cmd_line_args[0] == "echo"){
-            builtins.echo(cmd_line_args[1]);
+            builtins.echo(cmd_line_args);
             return;
       }
       if(cmd_line_args[0] == "type"){
-            builtins.type(cmd_line_args[1]);
+            for(int i = 1; i < cmd_line_args.size(); i++){
+                  builtins.type(cmd_line_args[i]);
+            }
+            return;
+      }
+      if(cmd_line_args[0] == "cd"){
+            builtins.cd(cmd_line_args);
             return;
       }
 
