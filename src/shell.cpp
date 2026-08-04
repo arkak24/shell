@@ -9,25 +9,25 @@ void Shell::run(){
       std::cerr << std::unitbuf;
 
       Executor executor;
-      CommandParser parser;
+      CommandTokenizer tokenizer;
 
-      std::string command;
+      std::string command_line;
       while(true){
             std::cout << "$ ";
-            std::getline(std::cin, command);
-            if(command == "exit") exit(0);
+            std::getline(std::cin, command_line);
+            if(command_line == "exit") exit(0);
 
-            std::vector<std::string> cmd_line_args = parser.slice_arguments(command);
+            std::vector<std::string> cmd_line_args = tokenizer.tokenize(command_line);
             if(cmd_line_args.size() == 0) continue;
             else if(cmd_line_args.back() == "-1"){
                   std::cout << "wrong command format\n";
                   continue;
             }
-            // test
-            else{
-                  for(auto it: cmd_line_args) std::cout << it << std::endl;
-                  continue;
-            }
+            // testbut
+            // else{
+            //       for(auto it: cmd_line_args) std::cout << it << std::endl;
+            //       continueother;
+            // }
 
             executor.execute(cmd_line_args);
       }

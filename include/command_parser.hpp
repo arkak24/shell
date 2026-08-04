@@ -5,7 +5,7 @@
 
 bool check_just_spaces(const std::string& str);
 
-class CommandParser{
+class CommandTokenizer{
       public:
-            std::vector<std::string> slice_arguments(const std::string& command);
+            std::vector<std::string> tokenize(const std::string& command_line);
 };

@@ -15,53 +15,127 @@ std::string convert_char_to_str(const char& c){
       return str;
 }
 
-std::vector<std::string> CommandParser::slice_arguments(const std::string& command){
-      std::vector<std::string> args;
-      if(check_just_spaces(command) || command.size() == 0) return args;
+# define OPEN true
+# define CLOSED false
 
-      std::unordered_set<char> operators = {'>', '<', '|'};
+std::vector<std::string> CommandTokenizer::tokenize(const std::string& command_line){
+      std::vector<std::string> tokens;
+      if(check_just_spaces(command_line) || command_line.size() == 0) return tokens;
 
-      // std::unordered_set<std::string> d_operators = {};
-      // for now just handle the ">>" case
+      std::unordered_set<char> operators = {'>', '<', '|', '&', ';'};
+      std::unordered_set<std::string> d_operators = {"&&", "||", "<<", ">>", ";;", "<&", ">&"};
 
-      // bool double_q_flag = false;
-      // bool single_q_flag = false;
+      bool double_q_flag = CLOSED;
+      bool single_q_flag = CLOSED;
 
       std::string word = "";
-      for(int i = 0; i < command.size(); i++){
-            if(command[i] != ' ' && operators.find(command[i]) == operators.end()){
-                  word += command[i];
-            }
-            if(command[i] == ' ' || i == command.size()-1 || operators.find(command[i]) != operators.end()){
-                  if(word.size() != 0){
-                        args.push_back(word);
-                        word = "";
+      for(int i = 0; i < command_line.size(); i++){
+            // 3 cases: normal, inside single quote, inside double quote
+
+            if(double_q_flag == CLOSED && single_q_flag == CLOSED){
+                  // normal case
+                  if(command_line[i] == '"'){
+                        double_q_flag = OPEN;
+                        continue;
                   }
-            }
-            // >> case
-            // if >> at the end then also error, handle after tokenize the whole thing
-            if(command[i] == '>' && (i != command.size()-1 && command[i+1] == '>')){
-                  args.push_back(">>");
-                  i++;
-            }
-            else if(operators.find(command[i]) != operators.end()){
-                  if (args.empty()) {
-                        // error: operator cannot be the first token
-                        args = {"-1"};
-                        return args;
+                  if(command_line[i] == '\''){
+                        single_q_flag = OPEN;
+                        continue;
+                  }
+
+                  if(command_line[i] == ' ' || operators.find(command_line[i]) != operators.end()){
+                        if(word.size() != 0){
+                              tokens.push_back(word);
+                              word.clear();
+                        }
+                  }
+               
+                  if(command_line[i] != ' ' && operators.find(command_line[i]) == operators.end()){
+                        word += command_line[i];
+                  }
+
+                  // check if it is a operator
+                  if(operators.find(command_line[i]) != operators.end()){
+                        // if operator is the first element then the command is invalid
+                        if(tokens.empty()){
+                              return {"-1"};
+                        }
+
+                        // check the double operator or single opertor
+                        if(i != command_line.size()-1){
+                              std::string temp = convert_char_to_str(command_line[i]) + convert_char_to_str(command_line[i+1]);
+
+                              // valid double operator
+                              if(d_operators.find(temp) != d_operators.end()){
+                                    tokens.push_back(temp);
+                                    i++;
+                                    continue;
+                              }
+
+                              // invalid double operator
+                              else if(operators.find(command_line[i+1]) != operators.end()){
+                                    return {"-1"};
+                              }
+
+                              // it's a single character operator, push as it is
+                              else{
+                                    tokens.push_back(convert_char_to_str(command_line[i]));
+                              }
+                        }
+                        else{
+                              // operator can't be at last
+                              // but we have to handle double operator at last anyhow in the parser
+                              // so dedicate that work to parser only
+                              // okay for now, do that if necessary
+
+                              return {"-1"};
+                              // check if there is any double character operator in the end of the command
+                        }
+
 
                   }
-                  else if (args.back() == ">>" || i == command.size() - 1 || operators.find(args.back().back()) != operators.end()) {
-                        // error case
-                        // return from here
-                        args = {"-1"};
-                        return args;
+            }
+            else if(double_q_flag == CLOSED && single_q_flag == OPEN){
+                  // inside single quotes
+                  // everything adds to the word as it is until a [']
+                  if(command_line[i] == '\''){
+                        single_q_flag = CLOSED;
+                        if(i == command_line.size()-1){
+                              tokens.push_back(word);
+                              word.clear();
+                        }
+                        continue;
                   }
-                  else {
-                        args.push_back(convert_char_to_str(command[i]));
+                  else{
+                        word += command_line[i];
                   }
             }
-            // " ", ' ', " ', ' ", " ' ' ", ' " " '
+            else if(double_q_flag == OPEN && single_q_flag == CLOSED){
+                  // inside the double quotes
+                  // everything adds to the word as it is until a ["]
+                  if(command_line[i] == '"'){
+                        double_q_flag = CLOSED;
+                        if(i == command_line.size()-1){
+                              tokens.push_back(word);
+                              word.clear();
+                        }
+                        continue;
+                  }
+                  else{
+                        word += command_line[i];
+                  }
+            }
+            // else if(double_q_flag == OPEN && single_q_flag == OPEN){
+                  // weired case, have to see which is opened at first,
+                  // whichever it is gets the priority
+                  // this case never comes to play***
+            // }
       }
-      return args;
+      if(!word.empty()){
+            tokens.push_back(word);
+      }
+      return tokens;
 }
+
+# undef OPEN
+# undef CLOSED
