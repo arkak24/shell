@@ -15,6 +15,10 @@ std::string convert_char_to_str(const char& c){
       return str;
 }
 
+// this don't handle the cases where the user inputs any
+// string with invalid quotations
+// like opeaning and closing quote errors
+
 # define OPEN true
 # define CLOSED false
 
@@ -134,6 +138,14 @@ std::vector<std::string> CommandTokenizer::tokenize(const std::string& command_l
       if(!word.empty()){
             tokens.push_back(word);
       }
+
+      // handle this case later
+      // bash don't work like this
+      // bash keeps on asking until you make the shole string right
+      if(single_q_flag == OPEN || double_q_flag == OPEN){
+            return {"-1"};
+      }
+
       return tokens;
 }
 

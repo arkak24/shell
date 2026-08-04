@@ -23,12 +23,7 @@ void Shell::run(){
                   std::cout << "wrong command format\n";
                   continue;
             }
-            // testbut
-            // else{
-            //       for(auto it: cmd_line_args) std::cout << it << std::endl;
-            //       continueother;
-            // }
-
+            
             executor.execute(cmd_line_args);
       }
 }
