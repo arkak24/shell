@@ -32,6 +32,9 @@ void Executor::execute(const std::vector<std::string>& cmd_line_args){
             builtins.cd(cmd_line_args);
             return;
       }
+      if(cmd_line_args[0] == "exit"){
+            builtins.exit(0);
+      }
 
       // for the commands that are not builtin
       pid_t process_id = fork();

@@ -8,3 +8,5 @@ class Shell{
       public:
             void run();
 };
+
+std::string read_command();

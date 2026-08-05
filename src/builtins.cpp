@@ -71,3 +71,7 @@ void Builtins::pwd(){
       // with filesystem we can do like std::filesystem::current_path()
       // but getpwd() is the standard POSIX API
 }
+
+void Builtins::exit(int n){
+      std::exit(n);
+}

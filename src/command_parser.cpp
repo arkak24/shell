@@ -26,11 +26,13 @@ std::vector<std::string> CommandTokenizer::tokenize(const std::string& command_l
       std::vector<std::string> tokens;
       if(check_just_spaces(command_line) || command_line.size() == 0) return tokens;
 
-      std::unordered_set<char> operators = {'>', '<', '|', '&', ';'};
-      std::unordered_set<std::string> d_operators = {"&&", "||", "<<", ">>", ";;", "<&", ">&"};
+      // add operators here if implemented
+      std::unordered_set<char> operators = {'>', '<', '|'};
+      std::unordered_set<std::string> d_operators = {">>"};
 
       bool double_q_flag = CLOSED;
       bool single_q_flag = CLOSED;
+      bool word_started = false;
 
       std::string word = "";
       for(int i = 0; i < command_line.size(); i++){
@@ -40,31 +42,30 @@ std::vector<std::string> CommandTokenizer::tokenize(const std::string& command_l
                   // normal case
                   if(command_line[i] == '"'){
                         double_q_flag = OPEN;
+                        word_started = true;
                         continue;
                   }
                   if(command_line[i] == '\''){
                         single_q_flag = OPEN;
+                        word_started = true;
                         continue;
                   }
 
                   if(command_line[i] == ' ' || operators.find(command_line[i]) != operators.end()){
-                        if(word.size() != 0){
+                        if(word_started == true){
                               tokens.push_back(word);
                               word.clear();
+                              word_started = false;
                         }
                   }
                
                   if(command_line[i] != ' ' && operators.find(command_line[i]) == operators.end()){
                         word += command_line[i];
+                        word_started = true;
                   }
 
-                  // check if it is a operator
+                  // if it is a operator
                   if(operators.find(command_line[i]) != operators.end()){
-                        // if operator is the first element then the command is invalid
-                        if(tokens.empty()){
-                              return {"-1"};
-                        }
-
                         // check the double operator or single opertor
                         if(i != command_line.size()-1){
                               std::string temp = convert_char_to_str(command_line[i]) + convert_char_to_str(command_line[i+1]);
@@ -76,27 +77,14 @@ std::vector<std::string> CommandTokenizer::tokenize(const std::string& command_l
                                     continue;
                               }
 
-                              // invalid double operator
-                              else if(operators.find(command_line[i+1]) != operators.end()){
-                                    return {"-1"};
-                              }
-
                               // it's a single character operator, push as it is
                               else{
                                     tokens.push_back(convert_char_to_str(command_line[i]));
                               }
                         }
                         else{
-                              // operator can't be at last
-                              // but we have to handle double operator at last anyhow in the parser
-                              // so dedicate that work to parser only
-                              // okay for now, do that if necessary
-
-                              return {"-1"};
-                              // check if there is any double character operator in the end of the command
+                              tokens.push_back(convert_char_to_str(command_line[i]));
                         }
-
-
                   }
             }
             else if(double_q_flag == CLOSED && single_q_flag == OPEN){
@@ -104,10 +92,6 @@ std::vector<std::string> CommandTokenizer::tokenize(const std::string& command_l
                   // everything adds to the word as it is until a [']
                   if(command_line[i] == '\''){
                         single_q_flag = CLOSED;
-                        if(i == command_line.size()-1){
-                              tokens.push_back(word);
-                              word.clear();
-                        }
                         continue;
                   }
                   else{
@@ -119,31 +103,16 @@ std::vector<std::string> CommandTokenizer::tokenize(const std::string& command_l
                   // everything adds to the word as it is until a ["]
                   if(command_line[i] == '"'){
                         double_q_flag = CLOSED;
-                        if(i == command_line.size()-1){
-                              tokens.push_back(word);
-                              word.clear();
-                        }
                         continue;
                   }
                   else{
                         word += command_line[i];
                   }
             }
-            // else if(double_q_flag == OPEN && single_q_flag == OPEN){
-                  // weired case, have to see which is opened at first,
-                  // whichever it is gets the priority
-                  // this case never comes to play***
-            // }
       }
-      if(!word.empty()){
+      
+      if(!word.empty() || word_started){
             tokens.push_back(word);
-      }
-
-      // handle this case later
-      // bash don't work like this
-      // bash keeps on asking until you make the shole string right
-      if(single_q_flag == OPEN || double_q_flag == OPEN){
-            return {"-1"};
       }
 
       return tokens;

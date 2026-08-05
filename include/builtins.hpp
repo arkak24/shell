@@ -13,4 +13,5 @@ class Builtins{
             void echo(const std::vector<std::string>& cmd_line_args);
             void cd(const std::vector<std::string>& cmd_line_args);
             void pwd();
+            void exit(int n);
 };
