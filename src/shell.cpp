@@ -1,5 +1,8 @@
+#include <stdexcept>
+
 #include "../include/shell.hpp"
-#include "../include/command_parser.hpp"
+#include "../include/tokenizer.hpp"
+#include "../include/parser.hpp"
 #include "../include/builtins.hpp"
 #include "../include/executor.hpp"
 
@@ -71,6 +74,7 @@ void Shell::run(){
 
       Executor executor;
       CommandTokenizer tokenizer;
+      CommandParser parser;
 
       std::string command_line;
       while(true){
@@ -78,9 +82,11 @@ void Shell::run(){
 
             // std::getline(std::cin, command_line);
             // just doing this would not enable the
+            // inclomplete qoute case
 
             command_line = read_command();
             
+            // tokenize the command line
             std::vector<std::string> tokens = tokenizer.tokenize(command_line);
             if(tokens.size() == 0) continue;
             else if(tokens.back() == "-1"){
@@ -88,6 +94,15 @@ void Shell::run(){
                   continue;
             }
 
-            executor.execute(tokens);
+            // parse the tokens
+            try{
+                  std::vector<Command> commands = parser.parse(tokens);
+            }
+            catch (const std::runtime_error& e) {
+                  std::cerr << e.what() << '\n';
+            }
+
+            // pass the parsed commands to the execute
+            // executor.execute(tokens);
       }
 }
