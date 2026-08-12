@@ -3,7 +3,7 @@
 #include <string>
 #include <utility>
 
-#include "../include/command_parser.hpp"
+#include "../include/tokenizer.hpp"
 
 int main(){
       std::vector<std::pair<const std::string, std::vector<std::string>>> tests1 = {
@@ -481,27 +481,36 @@ int main(){
 
       CommandTokenizer tokenizer;
 
-      int passed = 0;
-      for(int i = 0; i < tests.size(); i++){
-            std::vector<std::string> returned_val = tokenizer.tokenize(tests[i].first);
-            if(returned_val != tests[i].second){
-                  std::cout << "\nTest no: " << i+1 << "\n";
+      // int passed = 0;
+      // for(int i = 0; i < tests.size(); i++){
+      //       std::vector<std::string> returned_val = tokenizer.tokenize(tests[i].first);
+      //       if(returned_val != tests[i].second){
+      //             std::cout << "\nTest no: " << i+1 << "\n";
 
-                  std::cout << "\nString is: \n";
-                  std::cout << tests[i].first;
-                  std::cout << "\n\n";
+      //             std::cout << "\nString is: \n";
+      //             std::cout << tests[i].first;
+      //             std::cout << "\n\n";
 
-                  std::cout << "Returned: \n";
-                  for(auto it: returned_val) std::cout << it << "\t";
-                  std::cout << "\n\n";
+      //             std::cout << "Returned: \n";
+      //             for(auto it: returned_val) std::cout << it << "\t";
+      //             std::cout << "\n\n";
 
-                  std::cout << "Expected: \n";
-                  for(auto it: tests[i].second) std::cout << it << "\t";
-                  std::cout << "\n\n---------------------------------------------------\n";
-            }
-            else passed++;
+      //             std::cout << "Expected: \n";
+      //             for(auto it: tests[i].second) std::cout << it << "\t";
+      //             std::cout << "\n\n---------------------------------------------------\n";
+      //       }
+      //       else passed++;
+      // }
+      // if(passed == tests.size()) std::cout << "all good\n";
+
+      std::string cmd;
+      std::cout << "Enter the command: ";
+      std::getline(std::cin, cmd);
+      std::vector<std::string> rv = tokenizer.tokenize(cmd);
+
+      for(auto it: rv){
+            std::cout << "[" << it << "]\n";
       }
-      if(passed == tests.size()) std::cout << "all good\n";
 
       return 0;
 }
