@@ -9,6 +9,9 @@
 #define OPEN true
 #define CLOSED false
 
+// *** the incomplete pipe also make you complete the command
+// like incomplete quotes
+// not implemented yet
 std::string read_command(){
       std::string str = "";
       char ch;

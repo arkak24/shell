@@ -3,13 +3,20 @@
 #include <vector>
 #include <string>
 
+enum class Redirection_type{
+      Input,      // <
+      Output,     // >
+      Append      // >>
+};
+
+struct Redirection{
+      Redirection_type rd_type;
+      std::string filename;
+};
+
 struct Command{
       std::vector<std::string> args;
-
-      std::string input_file;
-      std::string output_file;
-
-      bool append_output = false;
+      std::vector<Redirection> redirections;
 };
 
 class CommandParser{
@@ -18,4 +25,5 @@ class CommandParser{
 
       private:
             bool is_operator(const std::string& token);
+            Redirection_type redir_type_token(const std::string& token);
 };
