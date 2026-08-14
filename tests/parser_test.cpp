@@ -5,6 +5,25 @@
 #include "../include/tokenizer.hpp"
 #include "../include/parser.hpp"
 
+std::string helper(Redirection_type rt){
+      switch(rt){
+            case Redirection_type::Input:
+                  return "<";
+                  break;
+            
+            case Redirection_type::Output:
+                  return ">";
+                  break;
+
+            case Redirection_type::Append:
+                  return ">>";
+                  break;
+
+            default:
+                  return "-1";
+      }
+}
+
 int main(){
       CommandTokenizer ct;
       CommandParser cp;
@@ -14,6 +33,11 @@ int main(){
       std::getline(std::cin, cmd);
 
       std::vector<std::string> tokens = ct.tokenize(cmd);
+      if(tokens.size() == 0){
+            std::cout << "Empty command\n";
+            return 0;
+      }
+
       std::vector<Command> parsed = cp.parse(tokens);
 
       std::cout << "The tokens are:\n\n";
@@ -23,11 +47,6 @@ int main(){
       std::cout << "-------------------------------\n\n";
 
       std::cout << "Parsed tokens is:\n\n";
-
-      // args
-      // input file
-      // output file
-      // bool append
 
       for(int i = 0; i < parsed.size(); i++){
             Command temp = parsed[i];
@@ -41,12 +60,12 @@ int main(){
                   else std::cout << "}\n";
             }
 
-            std::cout << "\tinput file: \"" << temp.input_file << "\"\n";
-            std::cout << "\toutput file: \"" << temp.output_file << "\"\n";
-
-            std::cout << std::boolalpha;
-            std::cout << "\tappend: \"" << temp.append_output << "\"\n";
-            std::cout << std::noboolalpha;
+            std::cout << "\tredirections: {";
+            for(int i = 0; i < temp.redirections.size(); i++){
+                  std::cout << "{\"" << helper(temp.redirections[i].rd_type) << "\": \"" << temp.redirections[i].filename << "\"}";
+                  if(i < temp.redirections.size()-1) std::cout << ", ";
+                  else std::cout << "}\n";
+            }
 
             std::cout << "}\n\n";
       }
