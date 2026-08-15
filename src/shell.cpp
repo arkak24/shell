@@ -98,14 +98,20 @@ void Shell::run(){
             }
 
             // parse the tokens
+            std::vector<Command> commands;
             try{
-                  std::vector<Command> commands = parser.parse(tokens);
+                  commands = parser.parse(tokens);
             }
-            catch (const std::runtime_error& e) {
-                  std::cerr << e.what() << '\n';
+            catch(const std::runtime_error& e){
+                  std::cout << e.what() << '\n';
             }
 
-            // pass the parsed commands to the execute
-            // executor.execute(tokens);
+            // pass the parsed commands to the executor
+            try{
+                  executor.execute(commands);
+            }
+            catch(const std::runtime_error& e){
+                  std::cout << e.what() << '\n';
+            }
       }
 }

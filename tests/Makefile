@@ -1,2 +1,5 @@
-all:
-	g++ parser_test.cpp ../src/parser.cpp ../src/tokenizer.cpp
+CXX = g++
+SCRS = ../src/executor.cpp ../src/tokenizer.cpp ../src/parser.cpp ../src/builtins.cpp
+
+test:
+	$(CXX) $(fn) $(SCRS)

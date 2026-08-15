@@ -33,9 +33,13 @@ void Builtins::type(const std::string& argument){
 }
 
 void Builtins::echo(const std::vector<std::string>& cmd_line_args){
-      // wrong, more modifications needed
-      std::cout << cmd_line_args[1] << std::endl;
-      return;
+      std::string str = "";
+      for(size_t i = 1; i < cmd_line_args.size(); i++){
+            str += cmd_line_args[i];
+            if(i != cmd_line_args.size()-1) str += " ";
+            else str += "\n";
+      }
+      write(1, str.c_str(), str.size());
 }
 
 void Builtins::cd(const std::vector<std::string>& cmd_line_args){
