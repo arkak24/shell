@@ -1,4 +1,5 @@
 *.out
 *.exe
+shell
 
 other_tests

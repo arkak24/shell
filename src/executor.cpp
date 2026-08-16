@@ -2,6 +2,7 @@
 #include <sys/wait.h> // for waitpid()
 #include <fcntl.h> // for open()
 #include <unordered_set>
+#include <utility>
 
 #include "../include/executor.hpp"
 #include "../include/builtins.hpp"
@@ -57,6 +58,22 @@ void Executor::execute(const std::vector<Command>& commands){
       // others will be considered as arguments to that program
       // except the redirection filenames
 
+      std::vector<std::pair<int, int>> pipes(commands.size()-1);
+      for(size_t i = 0; i < commands.size()-1; i++){
+            int fds[2];
+            if(pipe(fds) == -1){
+                  // the kernel gurantees that the retured fds are valid and distinct
+                  perror("pipe");
+                  return;
+            }
+            pipes[i] = {fds[1], fds[0]};
+            // pushing them flipped cause it's easier to visualise
+            // fds[0] -> read end
+            // fds[1] -> write end
+      }
+
+      std::vector<size_t> pids;
+
       for(size_t i = 0; i < commands.size(); i++){
             Command cur_cmd = commands[i];
 
@@ -67,7 +84,7 @@ void Executor::execute(const std::vector<Command>& commands){
                   pid_t process_id = fork();
                   if(process_id < 0){
                         // child not created successfully
-                        throw std::runtime_error("trash: command can't be executed\n");
+                        throw std::runtime_error("shell: command can't be executed\n");
                   }
 
                   // child
@@ -75,26 +92,42 @@ void Executor::execute(const std::vector<Command>& commands){
                         // always exit the child process explicitly
                         // like exit(0)/exit(1)
 
-                        std::vector<int> fds(cur_cmd.redirections.size());    // to deal with the file opeanings
+                        if(i > 0){  // fixing the stdin of the child
+                              dup2(pipes[i-1].second, 0);
+                        }
+                        if(i < commands.size()-1){    // fixing the stdout of the child
+                              dup2(pipes[i].first, 1);
+                        }
+
+                        // now the full pipes info is of no use to the child
+                        // so close the fds
+                        for(size_t itr = 0; itr < pipes.size(); itr++){
+                              close(pipes[itr].first);
+                              close(pipes[itr].second);
+                        }
+
+                        // the i/o are set for the child
+                        // redirection can overwrite them, if there's any
                         for(size_t j = 0; j < cur_cmd.redirections.size(); j++){
                               Redirection cur_redir = cur_cmd.redirections[j];
-
+                              
+                              int fd;
                               int flag;
                               if(cur_redir.rd_type == Redirection_type::Input){
-                                    fds[j] = open(cur_redir.filename.c_str(), O_RDONLY);
-                                    flag = dup2(fds[j], 0);
+                                    fd = open(cur_redir.filename.c_str(), O_RDONLY);
+                                    flag = dup2(fd, 0);
                               }
                               else if(cur_redir.rd_type == Redirection_type::Output){
-                                    fds[j] = open(cur_redir.filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-                                    flag = dup2(fds[j], 1);
+                                    fd = open(cur_redir.filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                                    flag = dup2(fd, 1);
                               }
                               else if(cur_redir.rd_type == Redirection_type::Append){
-                                    fds[j] = open(cur_redir.filename.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
-                                    flag = dup2(fds[j], 1);
+                                    fd = open(cur_redir.filename.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
+                                    flag = dup2(fd, 1);
                               }
 
                               // if file opeaning or redirecting fails
-                              if(fds[j] == -1){
+                              if(fd == -1){
                                     perror(cur_redir.filename.c_str());
                                     exit(1);
                               }
@@ -102,7 +135,7 @@ void Executor::execute(const std::vector<Command>& commands){
                                     perror("dup2");
                                     exit(1);
                               }
-                              close(fds[j]);
+                              close(fd);
                         }
                         // input and the op is set at this point, pass it to the program
 
@@ -121,8 +154,21 @@ void Executor::execute(const std::vector<Command>& commands){
                   
                   // parent
                   else{
-                        waitpid(process_id, nullptr, 0);
+                        pids.push_back(process_id);
                   }
             }
+      }
+
+      // inside the child we close the fds, yes
+      // but they are still open in the parent
+      // so we close them for the parent
+      for(size_t itr = 0; itr < pipes.size(); itr++){
+            close(pipes[itr].first);
+            close(pipes[itr].second);
+      }
+
+      // bring a closure to all the childs
+      for(pid_t pid: pids){
+            waitpid(pid, nullptr, 0);
       }
 }

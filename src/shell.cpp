@@ -104,6 +104,7 @@ void Shell::run(){
             }
             catch(const std::runtime_error& e){
                   std::cout << e.what() << '\n';
+                  continue;
             }
 
             // pass the parsed commands to the executor
@@ -112,6 +113,7 @@ void Shell::run(){
             }
             catch(const std::runtime_error& e){
                   std::cout << e.what() << '\n';
+                  continue;
             }
       }
 }

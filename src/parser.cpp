@@ -18,7 +18,7 @@ Redirection_type CommandParser::redir_type_token(const std::string& token){
       if(token == "<") return Redirection_type::Input;
       if(token == ">") return Redirection_type::Output;
       if(token == ">>") return Redirection_type::Append;
-      throw std::runtime_error("trash: invalid operator\n\n");
+      throw std::runtime_error("shell: invalid operator\n\n");
 }
 
 std::vector<Command> CommandParser::parse(const std::vector<std::string>& tokens){
@@ -37,11 +37,11 @@ std::vector<Command> CommandParser::parse(const std::vector<std::string>& tokens
                   if(tokens[i] == "|"){
                         if(i == 0 || (i != tokens.size()-1 && tokens[i+1] == "|")){
                               // error case, pipes cant be consecutive
-                              throw std::runtime_error("trash: syntax error near unexpected token '|'");
+                              throw std::runtime_error("shell: syntax error near unexpected token '|'");
                         }
 
                         // REMOVE THIS CONDITION LATER, WHEN THE INPUT IS REDESIGNED
-                        if(i == tokens.size()-1) throw std::runtime_error("Pipe can't be at last\n");
+                        if(i == tokens.size()-1) throw std::runtime_error("Pipe can't be at last");
 
                         parsed_command.push_back(sub_cmd);
                         sub_cmd = {};
@@ -56,10 +56,10 @@ std::vector<Command> CommandParser::parse(const std::vector<std::string>& tokens
                   */
                   else{
                         if(i == tokens.size()-1){
-                              throw std::runtime_error("trash: syntax error near unexpected token 'newline'\n");
+                              throw std::runtime_error("shell: syntax error near unexpected token 'newline'");
                         }
                         if(i != tokens.size()-1 && operators.find(tokens[i+1]) != operators.end()){
-                              std::string tmp = "trash: syntax error near unexpected token '" + tokens[i+1] + "'\n";
+                              std::string tmp = "shell: syntax error near unexpected token '" + tokens[i+1];
                               throw std::runtime_error(tmp);
                         }
                         Redirection_type rt = redir_type_token(tokens[i]);
