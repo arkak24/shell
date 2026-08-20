@@ -1,4 +1,6 @@
 #include <stdexcept>
+#include <vector>
+#include <string>
 
 #include "../include/shell.hpp"
 #include "../include/tokenizer.hpp"
@@ -8,6 +10,10 @@
 
 #define OPEN true
 #define CLOSED false
+
+// to store the history for the current session
+// append that to the .bash_history on exiting the shell
+std::vector<std::string> curr_session_histories;
 
 // *** the incomplete pipe also make you complete the command
 // like incomplete quotes
@@ -88,6 +94,7 @@ void Shell::run(){
             // inclomplete qoute case
 
             command_line = read_command();
+            curr_session_histories.push_back(command_line);
             
             // tokenize the command line
             std::vector<std::string> tokens = tokenizer.tokenize(command_line);
@@ -108,12 +115,6 @@ void Shell::run(){
             }
 
             // pass the parsed commands to the executor
-            try{
-                  executor.execute(commands);
-            }
-            catch(const std::runtime_error& e){
-                  std::cout << e.what() << '\n';
-                  continue;
-            }
+            executor.execute(commands);
       }
 }

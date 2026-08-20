@@ -7,6 +7,7 @@
 #include "../include/executor.hpp"
 #include "../include/builtins.hpp"
 #include "../include/parser.hpp"
+#include "../include/shell.hpp"
 
 std::vector<char*> Executor::convert_to_cType(const std::vector<std::string>& args){
       std::vector<char*> ans;
@@ -25,6 +26,7 @@ bool is_builtin(const std::string& program){
             "echo",
             "type",
             "cd",
+            "history",
             "exit"
       };
       if(builtins_st.find(program) != builtins_st.end()) return true;
@@ -47,8 +49,12 @@ void exec_builtin(const std::vector<std::string>& args){
             builtins.cd(args);
             return;
       }
+      if(args[0] == "history"){
+            builtins.history();
+            return;
+      }
       if(args[0] == "exit"){
-            builtins.exit(0);
+            builtins.exit();
       }
 }
 
@@ -77,14 +83,15 @@ void Executor::execute(const std::vector<Command>& commands){
       for(size_t i = 0; i < commands.size(); i++){
             Command cur_cmd = commands[i];
 
-            if(cur_cmd.args[0] == "cd" || cur_cmd.args[0] == "exit"){
+            if((cur_cmd.args[0] == "cd" && commands.size() == 1) || cur_cmd.args[0] == "exit"){
                   exec_builtin(cur_cmd.args);
             }
             else{
                   pid_t process_id = fork();
                   if(process_id < 0){
                         // child not created successfully
-                        throw std::runtime_error("shell: command can't be executed\n");
+                        perror("fork");
+                        return;
                   }
 
                   // child
@@ -147,7 +154,11 @@ void Executor::execute(const std::vector<Command>& commands){
                               std::vector<char*> argv = convert_to_cType(cur_cmd.args);
                               execvp(cur_cmd.args[0].c_str(), argv.data());
 
-                              std::cout << cur_cmd.args[0] << ": command not found\n";
+                              std::cerr << cur_cmd.args[0] << ": command not found\n";
+                              // if the command is not found then we want it in fd2
+                              // not in the output fd that is set by the code before
+                              // thats why use cerr than cout
+                              
                               exit(1); // exiting the child process
                         } 
                   }
@@ -171,4 +182,6 @@ void Executor::execute(const std::vector<Command>& commands){
       for(pid_t pid: pids){
             waitpid(pid, nullptr, 0);
       }
+
+      return;
 }

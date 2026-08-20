@@ -1,5 +1,7 @@
 #include "../include/builtins.hpp"
+#include "../include/shell.hpp"
 
+#include <fcntl.h>
 #include <unistd.h>
 
 void Builtins::type(const std::string& argument){
@@ -76,6 +78,44 @@ void Builtins::pwd(){
       // but getpwd() is the standard POSIX API
 }
 
-void Builtins::exit(int n){
-      std::exit(n);
+void Builtins::history(int n){
+      // the default val is given in the hpp file, so don't here
+      // if successful write the histories vector into the stdout
+      // for now don't take any args like the number of lines to print
+
+      char* home = getenv("HOME");
+      std::string history_address = std::string(home) + "/.trash_history";
+
+      int hist_fd = open(history_address.c_str(), O_RDONLY, 0644);
+      char buffer[4096];      // 4KB buffer
+      ssize_t size_read = read(hist_fd, buffer, sizeof(buffer));
+      while(size_read > 0){
+            write(STDOUT_FILENO, buffer, size_read);
+            size_read = read(hist_fd, buffer, sizeof(buffer));
+      }
+      close(hist_fd);
+
+      for(size_t i = 0; i < curr_session_histories.size(); i++){
+            std::cout << curr_session_histories[i] << "\n";
+      }
+      return;
+}
+
+void Builtins::exit(int exit_code){
+      if(curr_session_histories.size() == 0) std::exit(exit_code);
+
+      std::string history_str = "";
+      for(size_t i = 0; i < curr_session_histories.size(); i++){
+            history_str += curr_session_histories[i];
+            history_str += "\n";
+      }
+
+      char* home = getenv("HOME");
+      std::string history_address = std::string(home) + "/.trash_history";
+
+      int hist_fd = open(history_address.c_str(), O_CREAT | O_APPEND | O_WRONLY, 0644);
+      write(hist_fd, history_str.c_str(), history_str.size());
+      close(hist_fd);
+
+      std::exit(exit_code);
 }
