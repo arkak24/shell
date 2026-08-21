@@ -1,5 +1,5 @@
 CXX = g++
-SCRS = ../src/executor.cpp ../src/tokenizer.cpp ../src/parser.cpp ../src/builtins.cpp
+SRCS = ../src/executor.cpp ../src/tokenizer.cpp ../src/parser.cpp ../src/builtins.cpp ../src/shell.cpp
 
 test:
-	$(CXX) $(fn) $(SCRS)
+	$(CXX) $(fn) $(SRCS)
