@@ -15,9 +15,19 @@ std::string convert_char_to_str(const char& c){
       return str;
 }
 
-// this don't handle the cases where the user inputs any
-// string with invalid quotations
-// like opeaning and closing quote errors
+std::unordered_set<std::string> CommandTokenizer::operators = {
+      ">",
+      ">>",
+      "<",
+      "|"
+};
+
+bool CommandTokenizer::is_operator(const std::string& str){
+      if(operators.find(str) != operators.end()){
+            return true;
+      }
+      else return false;
+}
 
 # define OPEN true
 # define CLOSED false
@@ -26,32 +36,29 @@ std::vector<std::string> CommandTokenizer::tokenize(const std::string& command_l
       std::vector<std::string> tokens;
       if(check_just_spaces(command_line) || command_line.size() == 0) return tokens;
 
-      // add operators here if implemented
-      std::unordered_set<char> operators = {'>', '<', '|'};
-      std::unordered_set<std::string> d_operators = {">>"};
-
       bool double_q_flag = CLOSED;
       bool single_q_flag = CLOSED;
       bool word_started = false;
 
       std::string word = "";
       for(int i = 0; i < command_line.size(); i++){
+            std::string curr_char = convert_char_to_str(command_line[i]);
             // 3 cases: normal, inside single quote, inside double quote
 
             if(double_q_flag == CLOSED && single_q_flag == CLOSED){
                   // normal case
-                  if(command_line[i] == '"'){
+                  if(curr_char == "\""){
                         double_q_flag = OPEN;
                         word_started = true;
                         continue;
                   }
-                  if(command_line[i] == '\''){
+                  if(curr_char == "\'"){
                         single_q_flag = OPEN;
                         word_started = true;
                         continue;
                   }
 
-                  if(command_line[i] == ' ' || operators.find(command_line[i]) != operators.end()){
+                  if(curr_char == " " || is_operator(curr_char)){
                         if(word_started == true){
                               tokens.push_back(word);
                               word.clear();
@@ -59,19 +66,19 @@ std::vector<std::string> CommandTokenizer::tokenize(const std::string& command_l
                         }
                   }
                
-                  if(command_line[i] != ' ' && operators.find(command_line[i]) == operators.end()){
-                        word += command_line[i];
+                  if(curr_char != " " && !is_operator(curr_char)){
+                        word += curr_char;
                         word_started = true;
                   }
 
                   // if it is a operator
-                  if(operators.find(command_line[i]) != operators.end()){
+                  if(is_operator(curr_char)){
                         // check the double operator or single opertor
                         if(i != command_line.size()-1){
-                              std::string temp = convert_char_to_str(command_line[i]) + convert_char_to_str(command_line[i+1]);
+                              std::string temp = curr_char + convert_char_to_str(command_line[i+1]);
 
                               // valid double operator
-                              if(d_operators.find(temp) != d_operators.end()){
+                              if(is_operator(temp)){
                                     tokens.push_back(temp);
                                     i++;
                                     continue;
@@ -79,34 +86,34 @@ std::vector<std::string> CommandTokenizer::tokenize(const std::string& command_l
 
                               // it's a single character operator, push as it is
                               else{
-                                    tokens.push_back(convert_char_to_str(command_line[i]));
+                                    tokens.push_back(curr_char);
                               }
                         }
                         else{
-                              tokens.push_back(convert_char_to_str(command_line[i]));
+                              tokens.push_back(curr_char);
                         }
                   }
             }
             else if(double_q_flag == CLOSED && single_q_flag == OPEN){
                   // inside single quotes
                   // everything adds to the word as it is until a [']
-                  if(command_line[i] == '\''){
+                  if(curr_char == "\'"){
                         single_q_flag = CLOSED;
                         continue;
                   }
                   else{
-                        word += command_line[i];
+                        word += curr_char;
                   }
             }
             else if(double_q_flag == OPEN && single_q_flag == CLOSED){
                   // inside the double quotes
                   // everything adds to the word as it is until a ["]
-                  if(command_line[i] == '"'){
+                  if(curr_char == "\""){
                         double_q_flag = CLOSED;
                         continue;
                   }
                   else{
-                        word += command_line[i];
+                        word += curr_char;
                   }
             }
       }

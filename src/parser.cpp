@@ -4,15 +4,7 @@
 #include <stdexcept>
 
 #include "../include/parser.hpp"
-
-const std::unordered_set<std::string> operators = {">", "<", ">>", "|"};
-
-bool CommandParser::is_operator(const std::string& token){
-      if(operators.find(token) != operators.end()){
-            return true;
-      }
-      else return false;
-}
+#include "../include/tokenizer.hpp"
 
 Redirection_type CommandParser::redir_type_token(const std::string& token){
       if(token == "<") return Redirection_type::Input;
@@ -26,7 +18,7 @@ std::vector<Command> CommandParser::parse(const std::vector<std::string>& tokens
       Command sub_cmd;
 
       for(int i = 0; i < tokens.size(); i++){
-            if(!is_operator(tokens[i])){
+            if(!CommandTokenizer::is_operator(tokens[i])){
                   sub_cmd.args.push_back(tokens[i]);
             }
             else{
@@ -58,7 +50,7 @@ std::vector<Command> CommandParser::parse(const std::vector<std::string>& tokens
                         if(i == tokens.size()-1){
                               throw std::runtime_error("shell: syntax error near unexpected token 'newline'");
                         }
-                        if(i != tokens.size()-1 && operators.find(tokens[i+1]) != operators.end()){
+                        if(i != tokens.size()-1 && CommandTokenizer::is_operator(tokens[i+1])){
                               std::string tmp = "shell: syntax error near unexpected token '" + tokens[i+1];
                               throw std::runtime_error(tmp);
                         }

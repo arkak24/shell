@@ -21,18 +21,6 @@ std::vector<char*> Executor::convert_to_cType(const std::vector<std::string>& ar
       return ans;
 }
 
-bool is_builtin(const std::string& program){
-      std::unordered_set<std::string> builtins_st = {
-            "echo",
-            "type",
-            "cd",
-            "history",
-            "exit"
-      };
-      if(builtins_st.find(program) != builtins_st.end()) return true;
-      else return false;
-}
-
 void exec_builtin(const std::vector<std::string>& args){
       Builtins builtins;
       if(args[0] == "echo"){
@@ -146,7 +134,7 @@ void Executor::execute(const std::vector<Command>& commands){
                         }
                         // input and the op is set at this point, pass it to the program
 
-                        if(is_builtin(cur_cmd.args[0])){
+                        if(Builtins::is_builtin(cur_cmd.args[0])){
                               exec_builtin(cur_cmd.args);
                               exit(0);
                         }

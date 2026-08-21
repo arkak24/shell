@@ -4,8 +4,24 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+std::unordered_set<std::string> Builtins::builtins_set{
+      "type",     
+      "echo",
+      "cd",
+      "pwd",
+      "history",
+      "exit"
+};
+
+bool Builtins::is_builtin(const std::string& program){
+      if(builtins_set.find(program) != builtins_set.end()){
+            return true;
+      }
+      else return false;
+}
+
 void Builtins::type(const std::string& argument){
-      if(argument == "echo" || argument == "exit" || argument == "type"){
+      if(is_builtin(argument)){
             std::cout << argument << " is a shell builtin\n";
             return;
       }

@@ -24,6 +24,5 @@ class CommandParser{
             std::vector<Command> parse(const std::vector<std::string>& tokens);
 
       private:
-            bool is_operator(const std::string& token);
             Redirection_type redir_type_token(const std::string& token);
 };
